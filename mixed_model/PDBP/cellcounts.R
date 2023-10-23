@@ -1,1 +1,62 @@
+# load normalized count matrix
+counts<-read.table("load/count/matrix.txt",header = T, stringsAsFactors = F)
+counts<-as.matrix(counts)
+# load cleaned phenotype data
+pheno <- read.table('load/phenotype.txt', header = T, stringsAsFactors = F)
+# load normalized cell counts
+cell_counts<-read.csv("load/cellcounts.csv")
+
+#merge cell counts to pheno
+pheno <- merge(cell_counts, pheno, by = "sample_id")
+
+# check time variable is numeric
+str(pheno$visit_month)
+pheno$time_in_years <- pheno$visit_month / 12
+
+# select covariates in pheno that are needed for mixed models
+mixed_model_pheno <- pheno %>% dplyr::select(sample_id, sex, status = Pt.Category, age_at_baseline, time_in_years, PATNO = participant_id,B_cell, T_cell_CD4, T_cell_CD8, Monocyte, NK_cell, Neutrophil)
+mixed_model_pheno$PATNO <- str_replace_all(mixed_model_pheno$PATNO, "PD-", "")
+mixed_model_pheno <- mixed_model_pheno[order(mixed_model_pheno$PATNO, mixed_model_pheno$time_in_years), ]
+tmp <- mixed_model_pheno %>% group_by(PATNO) %>% mutate(visit_counts = length(time_in_years))
+table(tmp$visit_counts)
+
+mixed_model_count_matirx <- data.frame(t(counts))
+mixed_model_count_matirx$sample_id <- rownames(mixed_model_count_matirx)
+
+mixed_model_longtable <- merge(mixed_model_pheno, mixed_model_count_matirx, by = "sample_id")
+
+# create the long table
+mixed_model_longtable <- melt(mixed_model_longtable, id.vars = c('sample_id', "PATNO", 'sex', 'age_at_baseline', 'status', "time_in_years", "B_cell", "T_cell_CD4", "T_cell_CD8", "Monocyte", "NK_cell",  "Neutrophil"))
+
+colnames(mixed_model_longtable)[colnames(mixed_model_longtable) == "variable"] <- "RNA"
+colnames(mixed_model_longtable)[colnames(mixed_model_longtable) == "value"] <- "counts"
+str(mixed_model_longtable)
+mixed_model_longtable$RNA <- as.character(mixed_model_longtable$RNA)
+
+mixed_model_longtable<- mixed_model_longtable[order(mixed_model_longtable$PATNO), ]
+
+# remove 0 counts
+mixed_model_longtable[mixed_model_longtable$counts == 0, 'counts'] <- NA
+mixed_model_longtable <- na.omit(mixed_model_longtable)
+
+# add baseline counts 
+mixed_model_longtable$counts_at_baseline <- -9
+
+mixed_model_longtable <- mixed_model_longtable %>% group_by(PATNO, RNA) %>% mutate(counts_at_baseline = counts[which(time_in_years == min(time_in_years))])
+
+any(mixed_model_longtable$counts_at_baseline == -9) # should be FALSE
+
+# checking
+## mixed_model_longtable %>% filter(PATNO == "PDAA503EF5", circRNA == "circASXL1")
+
+patno <- unique(mixed_model_longtable$PATNO)
+linear_names <- unique(mixed_model_longtable$RNA)
+
+rand_linear <- linear_names[sample(1:length(linear_names), 1)]
+rand_sample <- patno[sample(1:length(patno), 1)]
+mixed_model_longtable %>% filter(PATNO == rand_sample, RNA == rand_linear)
+
+write.table(mixed_model_longtable, 'save/longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
+
+
 
