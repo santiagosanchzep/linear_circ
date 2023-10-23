@@ -1,4 +1,0 @@
-Deseq
-lmerTest
-dplyr
-ClusterProfiler
