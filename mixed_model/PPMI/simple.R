@@ -155,7 +155,7 @@ mixed_model_longtable %>% filter(PATNO == rand_sample, circRNA == rand_circ)
 
 write.table(mixed_model_longtable, 'save/longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
 
-
+# RUN MIXED MODEL
 data<- read.table("load/longtable.txt", header = T, stringsAsFactors = F)
 data <- data %>% group_by(PATNO, circRNA) %>% mutate(visit_counts = length(time_in_years))
 # filtered with as least two visits
@@ -202,7 +202,7 @@ selected_columns <- full_result_table[, c("linear","beta", "p", "padj")]
 result_table<- as.data.frame(selected_columns)
 
 
-#Ploting for gene symbols
+#  Getting the Gene symbols
 DE<-full_result_table
 #extracting degs
 ensembl_ids <- DE$linear
@@ -223,7 +223,7 @@ selected_columns <- DE[, c("gene_symbol","beta", "p", "padj", "linear")]
 DE<- as.data.frame(selected_columns)
 # DE<-na.omit(DE)
 
-
+#VOLCANO PLOT
 DE <- DE[order(DE$padj), ]
 volcano.name <- "PPMI  Longitudinal differential expression"
 l2f.lim <- 0
@@ -251,7 +251,7 @@ ggplot(plotDE, aes(x=beta, y=-log10(padj), size=gene_type, alpha = gene_type))+
   scale_y_continuous(expand = c(0,0), limits = c(0, 6))+
   geom_hline(yintercept = -log10(plim), linetype = "dashed") +
   geom_vline(xintercept = c(-l2f.lim, l2f.lim), linetype = "dashed") +
-  geom_label_repel(data = nine_circ, aes(label = gene_symbol), force = 2, nudge_y = 1, size = 3) +
+  geom_label_repel(data = nine_circ, aes(label = gene_symbol), force = 2, nudge_y = 1, size = 3) + #labelling the 9 circs
   scale_size_manual(values = sizes) + # Modify point size
   scale_alpha_manual(values = alphas) + # Modify point transparency
   ggtitle(volcano.name) +
