@@ -10,7 +10,7 @@ library(ggrepel)
 library(ggpubr)
 library(org.Hs.eg.db)
 #load phenotype 
-pheno <- read.table('phenotype.file.txt', header = T, stringsAsFactors = F)
+pheno <- read.table('load/pdbp_phenotype.file.txt', header = T, stringsAsFactors = F)
 
 # Base directory where subdirectories with quant.genes.sf files are located
 base_directory <- "Base/directory"
@@ -53,10 +53,10 @@ row.names(countMatrix)<-quant_data$Name
 print(countMatrix)
 
 #save the count matrix for easier loading
-write.csv(countMatrix,"save/count/matrix.csv")
+write.csv(countMatrix,"save/pdbp_matrix.csv")
 
 #Load count matrix
-count_matrix<-read.csv("load/count/matrix.csv", row.names = 1)
+count_matrix<-read.csv("load/pdbp_matrix.csv", row.names = 1)
 
 #Removing sample with low reads from coun matrix and phenotype file.
 countMatrixclean<- count_matrix[(rowCounts(count_matrix[,-1]<10) < round(0.9*dim(count_matrix[,-1])[2])),]
@@ -70,8 +70,8 @@ countMatrixfinal<- countMatrixclean[, sample_ids]
 countMatrixfinal<-floor(countMatrixfinal)
 
 #save the cleaned count matrix for easier loading
-write.csv(countMatrixfinal,"save/count/matrix.csv")
-count_matrix<-read.csv("load/count/matrix.csv", row.names = 1)
+write.csv(countMatrixfinal,"save/pdbp_cleaned_matrix.csv")
+count_matrix<-read.csv("load/pdbp_cleaned_matrix.csv", row.names = 1)
 
 #count normalization
 rnaDDS <- DESeqDataSetFromMatrix(countData =countMatrixfinal , colData = pheno, design = ~ 1)
@@ -79,8 +79,8 @@ vstDDS<-vst(rnaDDS)
 vst_countmatrix<-assay(vstDDS)
 
 #save the normalized count matrix for easier loading
-write.table(vst_countmatrix,"save/count/matrix.csv")
-vstDDS<-read.table("load/count/matrix.csv", header = T)
+write.table(vst_countmatrix,"save/pdbp_normalized_matrix.csv")
+vstDDS
 
 
 
@@ -110,10 +110,10 @@ plotStatus <- ggplot(pcaData, aes(x = PC1, y = PC2, color = group)) + geom_point
 #Generation of Longtable
 
 # load normalized count matrix
-counts<-read.table("load/count/matrix.csv",header = T, stringsAsFactors = F)
+counts<-read.table("load/pdbp_normalized_matrix.csv",header = T, stringsAsFactors = F)
 counts<-as.matrix(counts)
 # load cleaned phenotype data
-pheno <- read.table('load/phenotype.csv', header = T, stringsAsFactors = F)
+pheno <- read.table('load/pdbp_phenotype.csv', header = T, stringsAsFactors = F)
 
 #subset phenotype file 
 pheno<- pheno[colnames(counts) %in% pheno$sample_id, ]
@@ -154,8 +154,7 @@ mixed_model_longtable <- mixed_model_longtable %>% group_by(PATNO, RNA) %>% muta
 
 any(mixed_model_longtable$counts_at_baseline == -9) # should be FALSE
 
-# checking
-## mixed_model_longtable %>% filter(PATNO == "PDAA503EF5", circRNA == "circASXL1")
+
 
 patno <- unique(mixed_model_longtable$PATNO)
 linear_names <- unique(mixed_model_longtable$RNA)
@@ -164,12 +163,12 @@ rand_linear <- linear_names[sample(1:length(linear_names), 1)]
 rand_sample <- patno[sample(1:length(patno), 1)]
 mixed_model_longtable %>% filter(PATNO == rand_sample, RNA == rand_linear)
 
-write.table(mixed_model_longtable, 'save/longtable.txt', row.names = F, col.names = T)
+write.table(mixed_model_longtable, 'save/pdbp_longtable.txt', row.names = F, col.names = T)
 
 
 #MIXED MODEL WITH LONGTABLE
 # load in the Longtable
-data<- read.table("load/longtable.txt", header = T, stringsAsFactors = F)
+data<- read.table("load/pdbp_longtable.txt", header = T, stringsAsFactors = F)
 data <- data[order(data$PATNO, data$RNA),]
 data <- group_by(data, PATNO, RNA)
 data <- mutate(data, visit_counts = length(time_in_years))
@@ -196,11 +195,11 @@ for (one_linear in loop_linear){
 }
 
 # save result table
-full_result_table %>% write.table("save/reuslts.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+full_result_table %>% write.table("save/pdbp_results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 
 #Read in the results table
-full_result_table<- read.table("load/results.txt", header=T) 
+full_result_table<- read.table("load/pdbp_results.txt", header=T) 
 full_result_table$beta <-as.numeric(full_result_table$beta)
 full_result_table$p <-as.numeric(full_result_table$p)
 
@@ -219,7 +218,7 @@ selected_columns <- full_result_table[, c("linear","beta", "p", "padj")]
 # Create a new data frame with the selected columns
 result_table<- as.data.frame(selected_columns)
 
-#write.table(result_table,"save/results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+#write.table(result_table,"save/pdbp_results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 
 #Ploting for gene symbols intea of ENSEMBL ids
