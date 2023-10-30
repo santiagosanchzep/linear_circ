@@ -1,4 +1,4 @@
-ll# load normalized count matrix
+llll# load normalized count matrix
 counts<-read.table("load/pdbp_normalized_matrix.txt",header = T, stringsAsFactors = F)
 counts<-as.matrix(counts)
 # load cleaned phenotype data
@@ -56,12 +56,12 @@ rand_linear <- linear_names[sample(1:length(linear_names), 1)]
 rand_sample <- patno[sample(1:length(patno), 1)]
 mixed_model_longtable %>% filter(PATNO == rand_sample, RNA == rand_linear)
 
-write.table(mixed_model_longtable, 'save/pdbp_longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
+write.table(mixed_model_longtable, 'save/cell_counts_pdbp_longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
 
 #MIXED MODEL WITH LONGTABLE
 
 # load normalized count matrix
-data<- read.table("read(longtable.txt", header = T, stringsAsFactors = F)
+data<- read.table("read/cell_counts_pdbp_longtable.txt", header = T, stringsAsFactors = F)
 data <- data[order(data$PATNO, data$RNA),]
 data <- group_by(data, PATNO, RNA)
 data <- mutate(data, visit_counts = length(time_in_years))
@@ -88,11 +88,11 @@ for (one_linear in loop_linear){
 
 
 # save result table
-full_result_table %>% write.table("save/pdbp_results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+full_result_table %>% write.table("save/cell_counts_pdbp_results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 
 #Read table
-full_result_table<- read.table("load/pdbp_results.txt", header =T) 
+full_result_table<- read.table("load/cell_counts_pdbp_results.txt", header =T) 
 full_result_table$beta <-as.numeric(full_result_table$beta)
 full_result_table$p <-as.numeric(full_result_table$p)
 
@@ -110,7 +110,7 @@ selected_columns <- full_result_table[, c("linear","beta", "p", "padj")]
 # Create a new data frame with the selected columns
 result_table<- as.data.frame(selected_columns)
 
-#write.table(result_table,"save/results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+#write.table(result_table,"save/cell_counts_results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 #Ploting for gene symbols instead of ENSEMBL ids
 DE<-result_table
