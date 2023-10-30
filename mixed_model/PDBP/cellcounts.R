@@ -1,10 +1,10 @@
 # load normalized count matrix
-counts<-read.table("load/count/matrix.txt",header = T, stringsAsFactors = F)
+counts<-read.table("load/pdbp_normalized_matrix.txt",header = T, stringsAsFactors = F)
 counts<-as.matrix(counts)
 # load cleaned phenotype data
-pheno <- read.table('load/phenotype.txt', header = T, stringsAsFactors = F)
+pheno <- read.table('load/pdbp_phenotype.txt', header = T, stringsAsFactors = F)
 # load normalized cell counts
-cell_counts<-read.csv("load/cellcounts.csv")
+cell_counts<-read.csv("load/pdbp_cellcounts.csv")
 
 #merge cell counts to pheno
 pheno <- merge(cell_counts, pheno, by = "sample_id")
@@ -56,7 +56,7 @@ rand_linear <- linear_names[sample(1:length(linear_names), 1)]
 rand_sample <- patno[sample(1:length(patno), 1)]
 mixed_model_longtable %>% filter(PATNO == rand_sample, RNA == rand_linear)
 
-write.table(mixed_model_longtable, 'save/longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
+write.table(mixed_model_longtable, 'save/pdbp_longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
 
 #MIXED MODEL WITH LONGTABLE
 
@@ -88,11 +88,11 @@ for (one_linear in loop_linear){
 
 
 # save result table
-full_result_table %>% write.table("save/results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+full_result_table %>% write.table("save/pdbp_results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 
 #Read table
-full_result_table<- read.table("load/results.txt", header =T) 
+full_result_table<- read.table("load/pdbp_results.txt", header =T) 
 full_result_table$beta <-as.numeric(full_result_table$beta)
 full_result_table$p <-as.numeric(full_result_table$p)
 
@@ -131,8 +131,6 @@ selected_columns <- DE[, c("gene_symbol","beta", "p", "padj", "linear")]
 # Create a new data frame with the selected columns
 DE<- as.data.frame(selected_columns)
 
-DE<-na.omit(DE)
-
 DE <- DE[order(DE$padj), ]
 volcano.name <- "PDBP  Longitudinal differential expression + Cell counts"
 l2f.lim <- 0
@@ -143,9 +141,6 @@ plotDE <- DE %>% mutate(gene_type = case_when(beta >= l2f.lim & padj <= plim ~ "
 result_9circ<- read.table("load/9circs.txt", header = T)  
 
 circ_names<-result_9circ$linear
-
-
-
 #Subset the result_table based on circRNA names
 nine_circ<- plotDE[plotDE$linear %in% circ_names, ]
 
