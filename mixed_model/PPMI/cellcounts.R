@@ -6,10 +6,10 @@ library(flexiblas)
 #LONGTABLE
 
 # load normalized count matrix
-data <- read.table("load/count/matrix.txt", header = T, stringsAsFactors = F)
+data <- read.table("load/ppmi_normalized_matrix.txt", header = T, stringsAsFactors = F)
 
  # load cleaned phenotype data
- pheno <- read.table('load/pheno.txt', header = T, stringsAsFactors = F)
+ pheno <- read.table('load/ppmi_pheno.txt', header = T, stringsAsFactors = F)
 
 #Creating sample_id column 
 pheno$sample_id_2<- paste("PP-", pheno$PATNO, "-", pheno$EVENT_ID, "M", pheno$EVENTCode, "T1", sep = "")
@@ -21,7 +21,7 @@ pheno$sample_id_2 <- gsub("M3", "M24", pheno$sample_id_2)
 pheno$sample_id_2 <- gsub("M4", "M36", pheno$sample_id_2)
 
 # Load cell coun data
-cell_counts<-read.csv("load/cellcounts.csv")
+cell_counts<-read.csv("load/ppmi_cellcounts.csv")
 colnames(cell_counts)[colnames(cell_counts) == "sample_id"] <- "sample_id_2"
 
 
@@ -68,10 +68,10 @@ pheno<- pheno[colnames(data) %in% pheno$FILE_NAME,]
  rand_sample <- patno[sample(1:length(patno), 1)]
 mixed_model_longtable %>% filter(PATNO == rand_sample, circRNA == rand_circ)
  
- write.table(mixed_model_longtable, 'save/longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
+ write.table(mixed_model_longtable, 'save/ppmi_cell_counts_longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
 
 #RUN MIXED MODEL
-data <- read.table("load/longtable.txt", header = T, stringsAsFactors = F)
+data <- read.table("load/ppmi_longtable.txt", header = T, stringsAsFactors = F)
 data <- data %>% group_by(PATNO, circRNA) %>% mutate(visit_counts = length(time_in_years))
 # filtered with as least two visits
 atleast_2_visit <- subset(data, data$visit_counts > 1)
@@ -95,10 +95,10 @@ for (one_circ in loop_circs){
 }
 
 # save result table
-write.table(full_result_table, "save/results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+write.table(full_result_table, "save/ppmi_cell_counts_results_table.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 #Read table
-full_result_table<- read.table("load/results.txt", header =T)
+full_result_table<- read.table("load/ppmi_cell_counts_results_table.txt", header =T)
 full_result_table$beta <-as.numeric(full_result_table$beta)
 full_result_table$p <-as.numeric(full_result_table$p)
 
@@ -138,8 +138,6 @@ selected_columns <- DE[, c("gene_symbol","beta", "p", "padj", "linear")]
 # Create a new data frame with the selected columns
  DE_cc<- as.data.frame(selected_columns)
 
-
-# DE<-na.omit(DE)
 
 #VOLCANO PLOT
 
