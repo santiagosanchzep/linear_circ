@@ -3,7 +3,7 @@ library(tximport)
 library(DESeq2)
 library(readxl)
 library(ggplot2)
-# pheno<- read.table("load/pheno.txt", header = T, stringsAsFactors = F)
+# pheno<- read.table("load/ppmi_pheno.txt", header = T, stringsAsFactors = F)
 # pheno <- subset(pheno, pheno$Status_time != 2)
 # # Base directory where subdirectories with quant.genes.sf files are located
 # base_directory <- "base/directory"
@@ -46,9 +46,9 @@ library(ggplot2)
  print(countMatrix)
  
  #save the count matrix for easier loading
- write.csv(countMatrix,"save/count/matrix.csv")
+ write.csv(countMatrix,"save/ppmi_matrix.csv")
 
-countMatrix<-read.csv("load/count/matrix.csv", row.names = 1)
+countMatrix<-read.csv("load/ppmi_matrix.csv", row.names = 1)
 
 #Removing sample with low reads
 countMatrixclean<- countMatrix[(rowCounts(countMatrix[,-1]<10) < round(0.9*dim(countMatrix[,-1])[2])),]
@@ -77,7 +77,7 @@ vstDDS<-vst(rnaDDS)
 vst_countmatrix<-assay(vstDDS)
 
 # #save the normalized count matrix for easier loading
-# write.table(vst_countmatrix,"save/count/matrix.txt")
+# write.table(vst_countmatrix,"save/ppmi_normalized_matrix.txt")
 # vstDDS<-read.table("load/count/matrix.txt", header = T)
 
 
@@ -109,10 +109,10 @@ plotStatus <- ggplot(pcaData, aes(x = PC1, y = PC2, color = group)) + geom_point
 #LONGTABLE
 
 # load normalized count matrix
-data <- read.table("load/count/matrix.csv", header = T, stringsAsFactors = F)
+data <- read.table("load/ppmi_normalized_matrix.csv", header = T, stringsAsFactors = F)
 
 # load cleaned phenotype data
-pheno <- read.table('read/pheno.txt', header = T, stringsAsFactors = F)
+pheno <- read.table('read/ppmi_pheno.txt', header = T, stringsAsFactors = F)
 pheno <- subset(pheno, pheno$Status_time != 2)
 data <- data[ , colnames(data) %in% pheno$FILE_NAME]
 pheno<- pheno[colnames(data) %in% pheno$FILE_NAME,]
@@ -153,10 +153,10 @@ rand_circ <- circ_names[sample(1:length(circ_names), 1)]
 rand_sample <- patno[sample(1:length(patno), 1)]
 mixed_model_longtable %>% filter(PATNO == rand_sample, circRNA == rand_circ)
 
-write.table(mixed_model_longtable, 'save/longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
+write.table(mixed_model_longtable, 'save/ppmi_longtable.txt', quote= F, sep = '\t', row.names = F, col.names = T)
 
 # RUN MIXED MODEL
-data<- read.table("load/longtable.txt", header = T, stringsAsFactors = F)
+data<- read.table("load/ppmi_longtable.txt", header = T, stringsAsFactors = F)
 data <- data %>% group_by(PATNO, circRNA) %>% mutate(visit_counts = length(time_in_years))
 # filtered with as least two visits
 atleast_2_visit <- subset(data, data$visit_counts > 1)
@@ -180,10 +180,10 @@ for (one_circ in loop_circs){
 }
 
 # save result table
-write.table(full_result_table, "save/results.txt", quote = F, col.names = T, row.names = F, sep = '\t')
+write.table(full_result_table, "save/ppmi_results_table.txt", quote = F, col.names = T, row.names = F, sep = '\t')
 
 #Read table
-full_result_table<- read.table("load/results.txt", header =T)
+full_result_table<- read.table("load/ppmi_results_table.txt", header =T)
 full_result_table$beta <-as.numeric(full_result_table$beta)
 full_result_table$p <-as.numeric(full_result_table$p)
 
