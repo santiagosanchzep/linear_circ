@@ -10,8 +10,8 @@ data <- read.table("load/count/matrix.txt", header = T, stringsAsFactors = F)
 # load cleaned phenotype data
 pheno <- read.table('load/phenotype.txt', header = T, stringsAsFactors = F)
 pheno <- pheno %>%
-  mutate(Mutation = ifelse(Status...13 == "PD" & is.na(Mutation), "noncarrier", Mutation),
-         Mutation = ifelse(Status...13 == "HC" & is.na(Mutation), "control", Mutation))
+  mutate(Mutation = ifelse(Status...13 == "PD" & is.na(Mutation), "none", Mutation),
+         Mutation = ifelse(Status...13 == "HC" & is.na(Mutation), "none", Mutation))
 
 
 pheno$Mutation<-as.factor(pheno$Mutation)
@@ -73,7 +73,7 @@ full_result_table <- NULL
 for (one_circ in loop_circs){
   if (which(loop_circs == one_circ) %% 100 == 0){print(paste("Progress:", one_circ, which(loop_circs == one_circ)))}
   tmp <- subset(atleast_2_visit, atleast_2_visit$RNA == one_circ)
-  model <- lmer(counts ~ counts_at_baseline + age_at_baseline + sex + Mutation + time_in_years + status * time_in_years + (1 | PATNO), data = tmp)
+  model <- lmer(counts ~ counts_at_baseline + age_at_baseline + sex + status +  Mutation + time_in_years + status * time_in_years + (1 | PATNO), data = tmp)
   res <- as.data.frame(coef(summary(model, ddf = "Satterthwaite")))
   colnames(res) <- c('beta', 'se', 'df', 't_value', 'p')
   rownames(res) 
