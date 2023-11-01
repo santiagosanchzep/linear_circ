@@ -42,8 +42,8 @@ countMatrixfinal<- countMatrixclean[, sample_ids]
 countMatrixfinal<-floor(countMatrixfinal)
 #Modify pheno for mutations
 pheno <- pheno %>%
-  mutate(Mutation = ifelse(Status_time == "0" & is.na(Mutation), "control", Mutation),
-         Mutation = ifelse(Status_time == "1" & is.na(Mutation), "non-carrier", Mutation))
+  mutate(Mutation = ifelse(Status_time == "0" & is.na(Mutation), "none", Mutation),
+         Mutation = ifelse(Status_time == "1" & is.na(Mutation), "none", Mutation))
 
 #Modify count matrix for mutation
 # Extract the sample IDs from the phenotype data
