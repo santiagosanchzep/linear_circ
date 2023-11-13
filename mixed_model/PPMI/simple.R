@@ -1,10 +1,17 @@
 library(data.table)
 library(tximport)
 library(DESeq2)
-library(readxl)
-library(ggplot2)
-# pheno<- read.table("load/ppmi_pheno.txt", header = T, stringsAsFactors = F)
-# pheno <- subset(pheno, pheno$Status_time != 2)
+library(stringr)
+library(biomaRt)
+library("lmerTest")
+library(reshape2)
+library(dplyr)
+library(ggrepel)
+library(ggpubr)
+library(org.Hs.eg.db)
+#PPMI MIXED MODEL (simple)
+pheno<- read.table("load/ppmi_pheno.txt", header = T, stringsAsFactors = F)
+ pheno <- subset(pheno, pheno$Status_time != 2)
 # # Base directory where subdirectories with quant.genes.sf files are located
 # base_directory <- "base/directory"
 
