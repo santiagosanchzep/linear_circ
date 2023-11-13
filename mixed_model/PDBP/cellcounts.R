@@ -1,4 +1,6 @@
-llll# load normalized count matrix
+#PDBP MIXED MODEL (Cell Counts)
+
+# load normalized count matrix
 counts<-read.table("load/pdbp_normalized_matrix.txt",header = T, stringsAsFactors = F)
 counts<-as.matrix(counts)
 # load cleaned phenotype data
