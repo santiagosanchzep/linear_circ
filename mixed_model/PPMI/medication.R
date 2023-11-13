@@ -3,7 +3,7 @@ library(dplyr)
 library(DESeq2)
 library(stringr)
 
-
+#PPMI MIXED MODEL (Medication)
 # load normalized count matrix
 data <- read.table("load/count/matrix.txt", header = T, stringsAsFactors = F)
 
