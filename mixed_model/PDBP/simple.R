@@ -9,6 +9,8 @@ library(dplyr)
 library(ggrepel)
 library(ggpubr)
 library(org.Hs.eg.db)
+
+#PDBP MIXED MODEL (simple)
 #load phenotype 
 pheno <- read.table('load/pdbp_phenotype.file.txt', header = T, stringsAsFactors = F)
 
