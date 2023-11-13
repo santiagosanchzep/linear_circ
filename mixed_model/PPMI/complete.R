@@ -1578,7 +1578,6 @@ ggplot(plotDE, aes(x=beta, y=-log10(padj), size=gene_type, alpha = gene_type))+
   xlab("Effect size: beta") +
   ylab("-log10(p)")+
   theme_bw()
-
 #Ethnicity analyses
 #BOTH PDBP and PPMI cohorts mixed for African Merican
 Load PPMI count matrix
@@ -1897,6 +1896,127 @@ ggplot(plotDE, aes(x=beta, y=-log10(padj), size=gene_type, alpha = gene_type))+
   theme(legend.position = "none")
 
 
+
+#We modified al, our results tables by  recalculating the padj value from our 9circs, using only these 9 transcripts to obtain a padj value.
+medication<- read.table("read/medication_simple_result_table.txt", header = T)
+medication<- subset(medication, medication$covar == 'conditioncontrol:years')
+
+mediaction_cellcounts<-read.table("read/medication_cell_counts_result_table.txt", header = T)
+mediaction_cellcounts<- subset(mediaction_cellcounts, mediaction_cellcounts$covar == 'conditioncontrol:years')
+
+mutation<- read.table("read/mutations_result_table.txt", header = T)
+mutation<- subset(mutation, mutation$covar == 'time_in_years:status')
+
+mutation_noncarrier<- read.table("read/mutations_noncarrier_result_table.txt", header = T)
+mutation_noncarrier<- subset(mutation_noncarrier, mutation_noncarrier$covar == 'time_in_years:status')
+
+mutation_LRRK2<- read.table("read/mutations_lrrk2_results_table.txt", header = T)
+mutation_LRRK2<- subset(mutation_LRRK2, mutation_LRRK2$covar == 'time_in_years:status')
+
+mutation_GBA<- read.table("read/mutations_gba_result_table.txt", header = T)
+mutation_GBA<- subset(mutation_GBA, mutation_GBA$covar == 'time_in_years:status')
+
+mutation_SNCA<- read.table("read/mutations_snca_result_table.txt", header = T)
+mutation_SNCA<- subset(mutation_SNCA, mutation_SNCA$covar == 'time_in_years:status')
+
+ ethnicity<-read.table("read/ethnicity_result_table.txt", header = T)
+ ethnicity<- subset(ethnicity, ethnicity$covar == 'status:time_in_years')
+
+cell_counts<-read.table("read/cell_counts_result-table.txt", header = T)
+cell_counts<- subset(cell_counts, cell_counts$covar == 'conditioncontrol:years')
+
+simple<-read.table("read/simple_result_table.txt", header = T)
+simple<- subset(simple, simple$covar == 'conditioncontrol:years')
+
+
+# Create a list of data frames
+results <- list(medication, mediaction_cellcounts, mutation, mutation_GBA, mutation_LRRK2, mutation_noncarrier, mutation_SNCA, ethnicity, cell_counts, simple)
+
+
+
+# Function to add gene_symbol column to a data frame
+add_gene_symbol <- function(df) {
+  # Check if df is a data frame
+  if (is.data.frame(df)) {
+    # Ensure circ column is character or factor, convert if needed
+    df$circ <- as.character(df$circ)
+    
+    # Remove everything after the dot (including the dot)
+    primary_gene_id <- sub("\\..*", "", df$circ)
+    
+    # Map Ensembl IDs to gene symbols
+    gene_symbols <- mapIds(org.Hs.eg.db, keys = primary_gene_id, column = "SYMBOL", keytype = "ENSEMBL")
+    
+    # Add the gene symbols as a new column in your data frame
+    df$gene_symbol <- gene_symbols
+  }
+  
+  return(df)
+}
+
+
+results <- lapply(results, add_gene_symbol)
+
+
+#filtering for the nine
+filtering<- function(df) {
+
+  df$circ <- as.character(df$circ)
+  
+
+  target_genes <- c("ENSG00000031003.10", "ENSG00000066336.11", "ENSG00000123106.10",
+                    "ENSG00000140374.16", "ENSG00000140678.16", "ENSG00000155966.14",
+                    "ENSG00000158517.15", "ENSG00000159339.13", "ENSG00000178691.11")
+  
+  df <- df[df$circ %in% target_genes, ]
+  return(df)
+}
+nine_results <- lapply(results, filtering)
+
+#calculating padj 
+padjusted<-function(df) {
+  df$padj <- p.adjust(df$p, method = "fdr")
+  return(df)
+}
+
+nine_results <- lapply(nine_results, padjusted)
+
+
+
+#cleaning df 
+
+# Function to select specific columns from a data frame
+select_columns <- function(df) {
+  # Select specific columns and return the modified data frame
+  selected_df <- df[, c("gene_symbol", "beta", "p", "padj", "circ")]
+  return(selected_df)
+}
+
+# Apply the function to your list of data frames
+nine_results <- lapply(nine_results, select_columns)
+
+
+
+# Directory path
+output_dir <- "/03-DryLab/04-Analyses/2022_PD-Blood-circRNA_LI/2023_linearRNA_Mixed_Model_Santiago/PPMI/results_tables/"
+
+# Save each data frame as a separate CSV file
+for (i in 1:length(nine_results)) {
+  # Get the current data frame
+  current_df <- nine_results[[i]]
+  
+  # Generate the name by pasting the index 'i' to a prefix
+  df_name <- paste0("df_", i)
+  
+  # Create the file path with the data frame name
+  file_path <- file.path(output_dir, paste0(df_name, ".csv"))
+  
+  # Save the data frame as CSV
+  write.csv(current_df, file = file_path, row.names = FALSE)
+  
+  # Print a message indicating the file was saved
+  print(paste("Saved CSV file:", file_path))
+}
 
 
 
