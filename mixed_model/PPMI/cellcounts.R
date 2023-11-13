@@ -2,7 +2,7 @@ library(reshape2)
 library(dplyr)
 library(stringr)
 library(flexiblas)
-
+#PPMI MIXED MODEL (cell counts)
 #LONGTABLE
 
 # load normalized count matrix
