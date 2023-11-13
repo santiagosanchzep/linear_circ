@@ -2020,8 +2020,110 @@ for (i in 1:length(nine_results)) {
 
 
 
+#Meta simple model
+install.packages("metaRNASeq")
+library(metaRNASeq)
+
+result_9circ<- read.table("read/nine_circs", header = T)  
+circ_names<-result_9circ$linear
 
 
+#Read PDBP table
+full_result_table_PDBP<- read.table("read/result_table.txt", header = T) 
+
+full_result_table_PDBP$beta <-as.numeric(full_result_table_PDBP$beta)
+full_result_table_PDBP$p <-as.numeric(full_result_table_PDBP$p)
+
+full_result_table_PDBP <- full_result_table_PDBP %>%
+  group_by(covar) %>%
+  mutate(padj = p.adjust(p, method = "fdr"))
+#Create a table for intercept and interaction
+full_result_table_PDBP<- subset(full_result_table_PDBP, full_result_table_PDBP$covar == 'conditioncontrol:years')
+#Creating an specific table
+selected_columns <- full_result_table_PDBP[, c("linear","beta", "p", "padj")]
+# Create a new data frame with the selected columns
+discoveryDE<- as.data.frame(selected_columns)
+
+
+#Read PPMI data
+full_result_table_PPMI<-read.table("read/results_table", header = T)
+full_result_table_PPMI$beta <-as.numeric(full_result_table_PPMI$beta)
+full_result_table_PPMI$p <-as.numeric(full_result_table_PPMI$p)
+
+full_result_table_PPMI <- full_result_table_PPMI %>%
+  group_by(covar) %>%
+  mutate(padj = p.adjust(p, method = "fdr"))
+#Create a table for intercept and interaction
+full_result_table_PPMI<- subset(full_result_table_PPMI, full_result_table_PPMI$covar == 'conditioncontrol:years')
+colnames(full_result_table_PPMI)[colnames(full_result_table_PPMI) == "circ"] <-"linear"
+#Creating an specific table
+selected_columns <- full_result_table_PPMI[, c("linear","beta", "p", "padj")]
+# Create a new data frame with the selected columns
+replicationDE<- as.data.frame(selected_columns)
+
+names(discoveryDE)<-c("Gene", "disFC", "disPraw", "disPadj")
+names(replicationDE)<-c("Gene", "repFC", "repPraw")
+DE<-merge(discoveryDE, replicationDE, by="Gene")
+DE<-DE[DE$Gene %in% circ_names,]
+DE<-DE[sign(DE$disFC)==sign(DE$repFC),]
+fishcomb <- fishercomb(list(DE$disPraw,DE$repPraw), BHth = 0.05, )
+metaDE<-cbind(DE,fishcomb$rawpval,fishcomb$adjpval)
+metaDE$repPadj<-p.adjust(metaDE$repPraw, method = "fdr")
+names(metaDE)[c(8,9)]<-c("fishPraw", "fishPadj")
+write.csv(metaDE, row.names = F)
+
+
+#Meta cell counts model
+install.packages("metaRNASeq")
+library(metaRNASeq)
+
+result_9circ<- read.table("read/nine_circs", header = T)  
+circ_names<-result_9circ$linear
+
+
+#Read PDBP table
+full_result_table_PDBP<- read.table("read/cell_counts_result_table.txt", header = T) 
+
+full_result_table_PDBP$beta <-as.numeric(full_result_table_PDBP$beta)
+full_result_table_PDBP$p <-as.numeric(full_result_table_PDBP$p)
+
+full_result_table_PDBP <- full_result_table_PDBP %>%
+  group_by(covar) %>%
+  mutate(padj = p.adjust(p, method = "fdr"))
+#Create a table for intercept and interaction
+full_result_table_PDBP<- subset(full_result_table_PDBP, full_result_table_PDBP$covar == 'conditioncontrol:years')
+#Creating an specific table
+selected_columns <- full_result_table_PDBP[, c("linear","beta", "p", "padj")]
+# Create a new data frame with the selected columns
+discoveryDE<- as.data.frame(selected_columns)
+
+
+#Read PPMI data
+full_result_table_PPMI<-read.table("read/cell_counts_results_table", header = T)
+full_result_table_PPMI$beta <-as.numeric(full_result_table_PPMI$beta)
+full_result_table_PPMI$p <-as.numeric(full_result_table_PPMI$p)
+
+full_result_table_PPMI <- full_result_table_PPMI %>%
+  group_by(covar) %>%
+  mutate(padj = p.adjust(p, method = "fdr"))
+#Create a table for intercept and interaction
+full_result_table_PPMI<- subset(full_result_table_PPMI, full_result_table_PPMI$covar == 'conditioncontrol:years')
+colnames(full_result_table_PPMI)[colnames(full_result_table_PPMI) == "circ"] <-"linear"
+#Creating an specific table
+selected_columns <- full_result_table_PPMI[, c("linear","beta", "p", "padj")]
+# Create a new data frame with the selected columns
+replicationDE<- as.data.frame(selected_columns)
+
+names(discoveryDE)<-c("Gene", "disFC", "disPraw", "disPadj")
+names(replicationDE)<-c("Gene", "repFC", "repPraw")
+DE<-merge(discoveryDE, replicationDE, by="Gene")
+DE<-DE[DE$Gene %in% circ_names,]
+DE<-DE[sign(DE$disFC)==sign(DE$repFC),]
+fishcomb <- fishercomb(list(DE$disPraw,DE$repPraw), BHth = 0.05, )
+metaDE<-cbind(DE,fishcomb$rawpval,fishcomb$adjpval)
+metaDE$repPadj<-p.adjust(metaDE$repPraw, method = "fdr")
+names(metaDE)[c(8,9)]<-c("fishPraw", "fishPadj")
+write.csv(metaDE, row.names = F)
 
 
 
